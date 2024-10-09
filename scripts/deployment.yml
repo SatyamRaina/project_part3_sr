@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-book-catalog
+  labels:
+    app: book-catalog
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: book-catalog
+  template:
+    metadata:
+      labels:
+        app: book-catalog
+    spec:
+      containers:
+      - name: book-catalog
+        image: part3stan.azurecr.io/book_catalog1:1  # Ensure correct version/tag here
+        ports:
+        - containerPort: 8000  # Container port where the application runs
+        env:
+          - name: DATABASE_URL
+            value: "postgresql://project_part3_i5d6_user:UBbDYZkO6YovOXoJJnNwqIIRHDMdRKHD@dpg-crvrpibtq21c738pjprg-a.oregon-postgres.render.com/project_part3_i5d6"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-inventory-management
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: inventory-management
+  template:
+    metadata:
+      labels:
+        app: inventory-management
+    spec:
+      containers:
+      - name: inventory-management  # Rename to valid name
+        image: part3stan.azurecr.io/inventory_management1:1  # Ensure correct version/tag here
+        ports:
+        - containerPort: 8001  # Container port where the application runs
+        env:
+          - name: DATABASE_URL
+            value: "postgresql://project_part3_i5d6_user:UBbDYZkO6YovOXoJJnNwqIIRHDMdRKHD@dpg-crvrpibtq21c738pjprg-a.oregon-postgres.render.com/project_part3_i5d6"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-book-catalog
+spec:
+  selector:
+    app: book-catalog  
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: LoadBalancer  # To expose the service externally
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-inventory-management
+spec:
+  selector:
+    app: inventory-management  # Update selector to match deployment
+  ports:
+  - protocol: TCP
+    port: 8001
+    targetPort: 8001
+  type: LoadBalancer  # To expose the service externally
